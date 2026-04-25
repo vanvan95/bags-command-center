@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/bags-api/:path*",
+      "destination": "https://public-api-v2.bags.fm/:path*"
+    }
+  ]
+}
