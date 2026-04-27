@@ -1,19 +1,17 @@
 const fs = require('fs')
 
-fs.writeFileSync('api/bags.js', `export default async function handler(req, res) {
-  const path = req.url.replace('/api/bags/api/v1', '')
-  const url = 'https://public-api-v2.bags.fm/api/v1' + path
-  
-  const response = await fetch(url, {
-    headers: {
-      'x-api-key': process.env.BAGS_API_KEY,
-      'Content-Type': 'application/json'
-    }
-  })
-  
-  const data = await response.json()
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.status(response.status).json(data)
-}`)
+fs.writeFileSync('src/api.js', `const API_BASE = 'https://public-api-v2.bags.fm/api/v1'
+const API_KEY = import.meta.env.VITE_BAGS_API_KEY || 'bags_prod_PcgAKrA3hsM2fjZCOwKa331Nh714v88YX4EkPhjwACU'
 
-console.log('done!')
+export async function fetchBags(endpoint) {
+  const res = await fetch(API_BASE + endpoint, {
+    headers: { 'x-api-key': API_KEY }
+  })
+  if (!res.ok) throw new Error('API error ' + res.status)
+  const data = await res.json()
+  if (data && data.success === false) throw new Error(data.response || data.error || 'API error')
+  return data.response !== undefined ? data.response : data
+}
+`)
+
+console.log('api.js done!')

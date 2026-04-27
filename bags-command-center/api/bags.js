@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
-  const path = req.url.replace('/api/bags', '')
-  const url = 'https://public-api-v2.bags.fm' + path
+  const path = req.url.replace('/api/bags/api/v1', '')
+  const url = 'https://public-api-v2.bags.fm/api/v1' + path
   
   const response = await fetch(url, {
     headers: {
