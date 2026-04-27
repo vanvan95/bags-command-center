@@ -1,10 +1,17 @@
 const fs = require('fs')
 
-fs.writeFileSync('vercel.json', `{
-  "rewrites": [
-    { "source": "/api/bags/:path*", "destination": "/api/bags" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
-}`)
+fs.writeFileSync('index.html', `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bags Command Center</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
+`)
 
-console.log('vercel.json done!')
+console.log('index.html done!')

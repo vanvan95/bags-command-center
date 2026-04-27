@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/bags/(.*)", "destination": "/api/bags" }
+    { "source": "/api/bags/:path*", "destination": "/api/bags" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
