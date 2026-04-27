@@ -1,15 +1,13 @@
 export default async function handler(req, res) {
-  const path = req.url.replace('/api/bags/api/v1', '')
-  const url = 'https://public-api-v2.bags.fm/api/v1' + path
+  const path = req.url.replace('/api/bags', '')
+  const url = 'https://public-api-v2.bags.fm' + path
   
   const response = await fetch(url, {
-    headers: {
-      'x-api-key': process.env.BAGS_API_KEY,
-      'Content-Type': 'application/json'
-    }
+    headers: { 'x-api-key': process.env.BAGS_API_KEY }
   })
   
-  const data = await response.json()
+  const text = await response.text()
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.status(response.status).json(data)
+  res.setHeader('Content-Type', 'application/json')
+  res.status(response.status).send(text)
 }
