@@ -1,9 +1,19 @@
 const fs = require('fs')
 
-fs.writeFileSync('vercel.json', JSON.stringify({
-  "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ]
-}, null, 2))
+fs.writeFileSync('api/bags.js', `export default async function handler(req, res) {
+  const path = req.url.replace('/api/bags', '')
+  const url = 'https://public-api-v2.bags.fm/api' + path
+  
+  const response = await fetch(url, {
+    headers: {
+      'x-api-key': process.env.BAGS_API_KEY,
+      'Content-Type': 'application/json'
+    }
+  })
+  
+  const data = await response.json()
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.status(response.status).json(data)
+}`)
 
 console.log('done!')
