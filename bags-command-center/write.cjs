@@ -1,21 +1,9 @@
 const fs = require('fs')
 
-// Lưu landing page vào public/
-fs.renameSync('landing.html', 'public/landing.html')
+fs.writeFileSync('vercel.json', JSON.stringify({
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}, null, 2))
 
-// Tạo lại index.html cho Vite
-fs.writeFileSync('index.html', `<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bags Command Center</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
-</html>
-`)
-
-console.log('Fixed!')
+console.log('vercel.json done!')
