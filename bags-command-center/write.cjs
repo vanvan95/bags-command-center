@@ -1,102 +1,96 @@
 const fs = require('fs')
 
-fs.writeFileSync('src/TabAI.jsx', `
-import { useState, useEffect } from 'react'
-import { fetchBags } from './api'
+// Fix api.js - thêm default params
+fs.writeFileSync('src/api.js', `const API_BASE = '/api/bags/api/v1'
 
-export default function TabAI() {
-  const [tokens, setTokens] = useState([])
-  const [selected, setSelected] = useState(null)
-  const [analysis, setAnalysis] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [loadingTokens, setLoadingTokens] = useState(false)
+export async function fetchBags(endpoint) {
+  const sep = endpoint.includes('?') ? '&' : '?'
+  const url = API_BASE + endpoint + sep + 'page=1&limit=20'
+  const res = await fetch(url)
+  if (!res.ok) throw new Error('API error ' + res.status)
+  const data = await res.json()
+  if (data && data.success === false) throw new Error(data.error || 'API error')
+  return data.response !== undefined ? data.response : data
+}
+`)
 
-  useEffect(() => {
-    setLoadingTokens(true)
-    fetchBags('/token-launch/feed').then(feed => {
-      setTokens(feed.slice(0, 20))
-    }).catch(() => {}).finally(() => setLoadingTokens(false))
-  }, [])
+// Fix App.jsx - thêm TabAI
+fs.writeFileSync('src/App.jsx', `import { useState } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import SolanaWalletProvider from './WalletProvider'
+import TabDashboard from './TabDashboard'
+import TabFeed from './TabFeed'
+import TabTrade from './TabTrade'
+import TabLaunch from './TabLaunch'
+import TabStatus from './TabStatus'
+import TabAnalytics from './TabAnalytics'
+import TabPortfolio from './TabPortfolio'
+import TabSwap from './TabSwap'
+import TabAI from './TabAI'
+import '@solana/wallet-adapter-react-ui/styles.css'
 
-  const analyze = async (token) => {
-    setSelected(token)
-    setAnalysis('')
-    setLoading(true)
-    try {
-      const fees = await fetchBags('/token-launch/lifetime-fees?tokenMint=' + token.tokenMint).catch(() => 0)
-      const prompt = \`Bạn là chuyên gia phân tích token Solana trên Bags.fm. Phân tích token này bằng tiếng Việt:
+const TABS = [
+  { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+  { id: 'feed', icon: '🔥', label: 'Feed' },
+  { id: 'swap', icon: '⚡', label: 'Swap' },
+  { id: 'ai', icon: '🤖', label: 'AI Analyst' },
+  { id: 'trade', icon: '📈', label: 'Trade' },
+  { id: 'analytics', icon: '💰', label: 'Analytics' },
+  { id: 'portfolio', icon: '🎒', label: 'Portfolio' },
+  { id: 'launch', icon: '🚀', label: 'Launch' },
+  { id: 'status', icon: '🟢', label: 'Status' },
+]
 
-Token: \${token.name} (\$\${token.symbol})
-Status: \${token.status}
-Lifetime Fees: \${(Number(fees)/1e9).toFixed(4)} SOL
-
-Cung cấp:
-1. 🎯 Risk Score (1-10)
-2. 💡 Opportunity Score (1-10)
-3. 📊 3 nhận xét chính
-4. ⚡ Khuyến nghị: MUA/GIỮ/TRÁNH + lý do
-5. ⚠️ Rủi ro cần lưu ý\`
-
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
-      })
-      const data = await res.json()
-      const text = data.content?.map(c => c.text || '').join('') || 'Không thể phân tích.'
-      setAnalysis(text)
-    } catch(e) {
-      setAnalysis('Lỗi: ' + e.message)
-    }
-    setLoading(false)
-  }
+function AppInner() {
+  const [tab, setTab] = useState('dashboard')
+  const { connected, publicKey } = useWallet()
+  const shortAddr = publicKey ? publicKey.toBase58().slice(0,4) + '...' + publicKey.toBase58().slice(-4) : null
 
   return (
-    <div style={{ maxWidth: 900, margin: '0 auto' }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>🤖 AI Token Analyst</div>
-        <div style={{ fontSize: 14, color: '#475569' }}>Phân tích token thông minh bằng Claude AI</div>
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 20 }}>
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: 700, fontSize: 14 }}>🪙 Chọn Token</div>
-          {loadingTokens && <div style={{ padding: 20, color: '#475569', textAlign: 'center' }}>Loading...</div>}
-          {tokens.map(t => (
-            <div key={t.tokenMint} onClick={() => analyze(t)}
-              style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: '1px solid rgba(255,255,255,0.04)', cursor: 'pointer', background: selected?.tokenMint === t.tokenMint ? 'rgba(249,115,22,0.1)' : 'transparent' }}>
-              <img src={t.image || t.imageUrl || 'https://ui-avatars.com/api/?name=' + (t.symbol||'T') + '&background=f97316&color=fff'} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} onError={e => e.target.src='https://ui-avatars.com/api/?name=T&background=f97316&color=fff'} />
-              <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: 13 }}>{t.name}</div>
-                <div style={{ fontSize: 11, color: '#f97316' }}>\${t.symbol}</div>
-              </div>
-              <div style={{ padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, background: t.status === 'ACTIVE' ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)', color: t.status === 'ACTIVE' ? '#10b981' : '#f97316' }}>{t.status}</div>
-            </div>
-          ))}
-        </div>
-        <div style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 14, overflow: 'hidden' }}>
-          <div style={{ padding: '14px 20px', borderBottom: '1px solid rgba(255,255,255,0.06)', fontWeight: 700, fontSize: 14 }}>🧠 AI Analysis</div>
-          <div style={{ padding: 20 }}>
-            {!selected && <div style={{ textAlign: 'center', padding: 40, color: '#475569' }}><div style={{ fontSize: 40, marginBottom: 12 }}>🤖</div><div>Chọn token để xem phân tích</div></div>}
-            {selected && loading && <div style={{ textAlign: 'center', padding: 40 }}><div style={{ fontSize: 32, marginBottom: 12 }}>⏳</div><div style={{ color: '#f97316', fontWeight: 600 }}>Đang phân tích {selected.name}...</div></div>}
-            {selected && !loading && analysis && (
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '10px 14px', background: 'rgba(249,115,22,0.08)', borderRadius: 10, border: '1px solid rgba(249,115,22,0.2)' }}>
-                  <img src={selected.image || selected.imageUrl || 'https://ui-avatars.com/api/?name=' + (selected.symbol||'T') + '&background=f97316&color=fff'} alt="" style={{ width: 36, height: 36, borderRadius: '50%' }} onError={e => e.target.src='https://ui-avatars.com/api/?name=T&background=f97316&color=fff'} />
-                  <div><div style={{ fontWeight: 700 }}>{selected.name}</div><div style={{ fontSize: 12, color: '#f97316' }}>\${selected.symbol}</div></div>
-                </div>
-                <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#e2e8f0' }}>{analysis}</div>
-              </div>
-            )}
+    <div style={{ minHeight: '100vh', background: '#080c12', fontFamily: '"DM Sans", system-ui, sans-serif', color: '#fff' }}>
+      <div style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, height: 56, position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 8, flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🎒</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15, lineHeight: 1 }}>Bags</div>
+            <div style={{ fontSize: 9, color: '#f97316', fontWeight: 700, letterSpacing: 1, whiteSpace: 'nowrap' }}>COMMAND CENTER</div>
           </div>
         </div>
+        {TABS.map(t => (
+          <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <span style={{ fontSize: 13 }}>{t.icon}</span>{t.label}
+          </button>
+        ))}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+            <span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>Live</span>
+          </div>
+          {connected && shortAddr && (
+            <div style={{ fontSize: 12, color: '#10b981', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap' }}>✅ {shortAddr}</div>
+          )}
+          <WalletMultiButton style={{ whiteSpace: 'nowrap', borderRadius: 10, fontSize: 13, fontWeight: 700, height: 36, padding: '0 16px' }} />
+        </div>
+      </div>
+      <div style={{ padding: '24px' }}>
+        {tab === 'dashboard' && <TabDashboard />}
+        {tab === 'feed' && <TabFeed />}
+        {tab === 'swap' && <TabSwap />}
+        {tab === 'ai' && <TabAI />}
+        {tab === 'trade' && <TabTrade />}
+        {tab === 'analytics' && <TabAnalytics />}
+        {tab === 'portfolio' && <TabPortfolio />}
+        {tab === 'launch' && <TabLaunch />}
+        {tab === 'status' && <TabStatus />}
       </div>
     </div>
   )
 }
+
+export default function App() {
+  return <SolanaWalletProvider><AppInner /></SolanaWalletProvider>
+}
 `)
 
-console.log('TabAI.jsx done!')
+console.log('Done!')
