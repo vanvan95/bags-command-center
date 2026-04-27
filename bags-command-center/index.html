@@ -1,10 +1,4 @@
-const fs = require('fs')
-
-// Lưu landing page vào public/
-fs.renameSync('landing.html', 'public/landing.html')
-
-// Tạo lại index.html cho Vite
-fs.writeFileSync('index.html', `<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -16,6 +10,3 @@ fs.writeFileSync('index.html', `<!DOCTYPE html>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
-`)
-
-console.log('Fixed!')
