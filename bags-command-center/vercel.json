@@ -1,1 +1,5 @@
-{"rewrites":[{"source":"/bags-api/:path*","destination":"https://public-api-v2.bags.fm/:path*"}]}
+{
+  "rewrites": [
+    { "source": "/api/bags/(.*)", "destination": "/api/bags" }
+  ]
+}

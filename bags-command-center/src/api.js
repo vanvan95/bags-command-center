@@ -1,4 +1,4 @@
-const API_BASE = '/bags-api/api/v1'
+const API_BASE = '/api/bags/api/v1'
 
 export async function fetchBags(endpoint) {
   const res = await fetch(API_BASE + endpoint)
