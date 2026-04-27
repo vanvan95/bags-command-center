@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   
   try {
     const response = await fetch(url, {
-      headers: { 'x-api-key': process.env.BAGS_API_KEY }
+      headers: { 'x-api-key': process.env.BAGS_API_KEY || 'bags_prod_PcgAKrA3hsM2fjZCOwKa331Nh714v88YX4EkPhjwACU' }
     })
     const text = await response.text()
     res.status(response.status).send(text)
