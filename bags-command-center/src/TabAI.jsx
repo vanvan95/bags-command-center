@@ -1,6 +1,4 @@
-const fs = require('fs')
 
-fs.writeFileSync('src/TabAI.jsx', `
 import { useState, useEffect } from 'react'
 import { fetchBags } from './api'
 
@@ -24,18 +22,18 @@ export default function TabAI() {
     setLoading(true)
     try {
       const fees = await fetchBags('/token-launch/lifetime-fees?tokenMint=' + token.tokenMint).catch(() => 0)
-      const prompt = \`Bạn là chuyên gia phân tích token Solana trên Bags.fm. Phân tích token này bằng tiếng Việt:
+      const prompt = `Bạn là chuyên gia phân tích token Solana trên Bags.fm. Phân tích token này bằng tiếng Việt:
 
-Token: \${token.name} (\$\${token.symbol})
-Status: \${token.status}
-Lifetime Fees: \${(Number(fees)/1e9).toFixed(4)} SOL
+Token: ${token.name} ($${token.symbol})
+Status: ${token.status}
+Lifetime Fees: ${(Number(fees)/1e9).toFixed(4)} SOL
 
 Cung cấp:
 1. 🎯 Risk Score (1-10)
 2. 💡 Opportunity Score (1-10)
 3. 📊 3 nhận xét chính
 4. ⚡ Khuyến nghị: MUA/GIỮ/TRÁNH + lý do
-5. ⚠️ Rủi ro cần lưu ý\`
+5. ⚠️ Rủi ro cần lưu ý`
 
       const res = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
@@ -71,7 +69,7 @@ Cung cấp:
               <img src={t.image || t.imageUrl || 'https://ui-avatars.com/api/?name=' + (t.symbol||'T') + '&background=f97316&color=fff'} alt="" style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} onError={e => e.target.src='https://ui-avatars.com/api/?name=T&background=f97316&color=fff'} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 13 }}>{t.name}</div>
-                <div style={{ fontSize: 11, color: '#f97316' }}>\${t.symbol}</div>
+                <div style={{ fontSize: 11, color: '#f97316' }}>${t.symbol}</div>
               </div>
               <div style={{ padding: '2px 8px', borderRadius: 99, fontSize: 10, fontWeight: 700, background: t.status === 'ACTIVE' ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)', color: t.status === 'ACTIVE' ? '#10b981' : '#f97316' }}>{t.status}</div>
             </div>
@@ -86,7 +84,7 @@ Cung cấp:
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '10px 14px', background: 'rgba(249,115,22,0.08)', borderRadius: 10, border: '1px solid rgba(249,115,22,0.2)' }}>
                   <img src={selected.image || selected.imageUrl || 'https://ui-avatars.com/api/?name=' + (selected.symbol||'T') + '&background=f97316&color=fff'} alt="" style={{ width: 36, height: 36, borderRadius: '50%' }} onError={e => e.target.src='https://ui-avatars.com/api/?name=T&background=f97316&color=fff'} />
-                  <div><div style={{ fontWeight: 700 }}>{selected.name}</div><div style={{ fontSize: 12, color: '#f97316' }}>\${selected.symbol}</div></div>
+                  <div><div style={{ fontWeight: 700 }}>{selected.name}</div><div style={{ fontSize: 12, color: '#f97316' }}>${selected.symbol}</div></div>
                 </div>
                 <div style={{ whiteSpace: 'pre-wrap', fontSize: 14, lineHeight: 1.7, color: '#e2e8f0' }}>{analysis}</div>
               </div>
@@ -97,6 +95,3 @@ Cung cấp:
     </div>
   )
 }
-`)
-
-console.log('TabAI.jsx done!')
