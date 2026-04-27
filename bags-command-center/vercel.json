@@ -1,11 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/api/bags/:path*",
-      "destination": "/api/bags"
-    },
-    {
-      "source": "/((?!api/).*)",
+      "source": "/((?!api).*)",
       "destination": "/index.html"
     }
   ]
