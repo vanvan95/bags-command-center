@@ -1,5 +1,14 @@
 {
+  "functions": {
+    "api/bags.js": {
+      "runtime": "@vercel/node@3"
+    }
+  },
   "rewrites": [
+    {
+      "source": "/api/bags/(.*)",
+      "destination": "/api/bags"
+    },
     {
       "source": "/((?!api).*)",
       "destination": "/index.html"
