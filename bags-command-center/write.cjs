@@ -1,19 +1,7 @@
 const fs = require('fs')
 
-fs.writeFileSync('api/bags.js', `export default async function handler(req, res) {
-  const path = req.url.replace('/api/bags', '')
-  const url = 'https://public-api-v2.bags.fm' + path
-  
-  const response = await fetch(url, {
-    headers: {
-      'x-api-key': process.env.BAGS_API_KEY,
-      'Content-Type': 'application/json'
-    }
-  })
-  
-  const data = await response.json()
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.status(response.status).json(data)
-}`)
-
-console.log('api/bags.js fixed!')
+let content = fs.readFileSync('index.html', 'utf8')
+content = content.replace('href="/dashboard" class="btn-primary"', 'href="/" class="btn-primary"')
+content = content.replace('href="/dashboard" class="btn-primary"', 'href="/" class="btn-primary"')
+fs.writeFileSync('index.html', content)
+console.log('done!')
