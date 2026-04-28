@@ -1,6 +1,4 @@
-const fs = require('fs')
-
-fs.writeFileSync('src/TabWallet.jsx', `import { useState } from 'react'
+import { useState } from 'react'
 
 export default function TabWallet() {
   const [address, setAddress] = useState('')
@@ -65,7 +63,7 @@ export default function TabWallet() {
                   </div>
                   <div>
                     <div style={{ fontWeight: 600 }}>{t.tokenName || 'Unknown'}</div>
-                    <div style={{ fontSize: 12, color: '#f97316' }}>\${t.tokenSymbol || '?'}</div>
+                    <div style={{ fontSize: 12, color: '#f97316' }}>${t.tokenSymbol || '?'}</div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
@@ -87,6 +85,4 @@ export default function TabWallet() {
       )}
     </div>
   )
-}`)
-
-console.log('done!')
+}
