@@ -6,24 +6,22 @@ export default async function handler(req, res) {
 
   try {
     const body = req.body || {}
-    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + process.env.GROQ_API_KEY
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: body.messages || [{ role: 'user', content: 'Hello' }],
-        max_tokens: 1000
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: body.messages || [{ role: 'user', content: 'Hello' }]
       })
     })
-    const groqData = await groqRes.json()
-    console.log('Groq raw:', JSON.stringify(groqData).slice(0, 300))
-    const text = groqData?.choices?.[0]?.message?.content
-    if (!text) {
-      return res.status(500).json({ error: 'Groq returned: ' + JSON.stringify(groqData).slice(0,200) })
-    }
+    const data = await r.json()
+    const text = data.content?.[0]?.text
+    if (!text) return res.status(500).json({ error: JSON.stringify(data).slice(0,200) })
     res.status(200).json({ content: [{ text }] })
   } catch(e) {
     res.status(500).json({ error: e.message })
