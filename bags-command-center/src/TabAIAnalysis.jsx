@@ -30,7 +30,7 @@ export default function TabAIAnalysis() {
     setResult('')
     const token = selectedToken || { name: tokenQuery, symbol: tokenQuery }
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/claude', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -73,7 +73,7 @@ Be direct and concise. Format with markdown bold headers.`
       const list = Array.isArray(data) ? data : (data?.launches || data?.tokens || [])
       const top10 = list.slice(0, 10).map(t => `${t.name || 'Unknown'} (${t.symbol || '?'})`).join(', ')
 
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch('/api/claude', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
