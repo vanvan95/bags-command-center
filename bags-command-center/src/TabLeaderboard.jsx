@@ -100,7 +100,7 @@ export default function TabLeaderboard() {
             </thead>
             <tbody>
               {sorted.map((t, i) => {
-                const mint = t.mint || t.tokenMint || t.address || ''
+                const mint = t.tokenMint || t.mint || t.address || ''
                 const change = t.priceChange24h || t.change24h || 0
                 return (
                   <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
@@ -139,7 +139,7 @@ export default function TabLeaderboard() {
                     <td style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 700, color: change >= 0 ? '#10b981' : '#ef4444' }}>
                       {change ? (change >= 0 ? '+' : '') + change.toFixed(2) + '%' : '-'}
                     </td>
-                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>{fmt(t.marketCap||t.mcap)}</td>
+                    <td style={{ padding: '10px 8px', textAlign: 'right' }}>{fmt(t.marketCap||t.mcap||t.mktCap||0)}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'right' }}>{fmt(t.volume24h||t.volume)}</td>
                     <td style={{ padding: '10px 8px', textAlign: 'right' }}>{t.holders?.toLocaleString() || '-'}</td>
                   </tr>
@@ -152,3 +152,5 @@ export default function TabLeaderboard() {
     </div>
   )
 }
+
+
