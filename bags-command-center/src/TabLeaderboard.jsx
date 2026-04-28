@@ -117,7 +117,7 @@ export default function TabLeaderboard() {
                             padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
                             background: 'rgba(249,115,22,0.15)', color: '#f97316', textDecoration: 'none'
                           }}>SOL↗</a>
-                          <a href={"https://bags.fm/token/"+mint} target="_blank" rel="noreferrer" style={{
+                          <a href={"https://bags.fm/"+mint} target="_blank" rel="noreferrer" style={{
                             padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
                             background: 'rgba(139,92,246,0.15)', color: '#a78bfa', textDecoration: 'none'
                           }}>BAGS↗</a>
