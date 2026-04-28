@@ -51,7 +51,7 @@ function AppInner() {
         {/* Tabs - scrollable */}
         <div style={{ display: 'flex', overflowX: 'auto', flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
           {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 7px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
               <span style={{ fontSize: 13 }}>{t.icon}</span>
               {t.label}
             </button>
@@ -96,3 +96,4 @@ export default function App() {
     </SolanaWalletProvider>
   )
 }
+
