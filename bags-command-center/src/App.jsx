@@ -13,6 +13,7 @@ import TabSwap from './TabSwap'
 import TabAI from './TabAI'
 import TabAIAnalysis from './TabAIAnalysis'
 import TabWallet from './TabWallet'
+import TabLeaderboard from './TabLeaderboard'
 import '@solana/wallet-adapter-react-ui/styles.css'
 
 const TABS = [
@@ -27,6 +28,7 @@ const TABS = [
   { id: 'alerts', icon: '🚨', label: 'Alerts' },
   { id: 'ai', icon: '🤖', label: 'AI' },
   { id: 'wallet', icon: '🐋', label: 'Wallet' },
+  { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
 ]
 
 function AppInner() {
@@ -87,6 +89,7 @@ function AppInner() {
         {tab === 'alerts' && <TabAI />}
         {tab === 'ai' && <TabAIAnalysis />}
         {tab === 'wallet' && <TabWallet />}
+        {tab === 'leaderboard' && <TabLeaderboard />}
       </div>
     </div>
   )
@@ -99,6 +102,9 @@ export default function App() {
     </SolanaWalletProvider>
   )
 }
+
+
+
 
 
 

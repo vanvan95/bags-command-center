@@ -1,6 +1,4 @@
-const fs = require('fs')
-
-fs.writeFileSync('src/TabLeaderboard.jsx', `import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { fetchBags } from './api'
 
 export default function TabLeaderboard() {
@@ -47,15 +45,15 @@ export default function TabLeaderboard() {
 
   const fmt = (n) => {
     if (!n) return '-'
-    if (n >= 1000000) return '\$' + (n/1000000).toFixed(2) + 'M'
-    if (n >= 1000) return '\$' + (n/1000).toFixed(2) + 'K'
-    return '\$' + n.toFixed(2)
+    if (n >= 1000000) return '$' + (n/1000000).toFixed(2) + 'M'
+    if (n >= 1000) return '$' + (n/1000).toFixed(2) + 'K'
+    return '$' + n.toFixed(2)
   }
 
   const fmtPrice = (n) => {
     if (!n) return '-'
-    if (n < 0.000001) return '\$' + n.toExponential(2)
-    return '\$' + n.toFixed(6)
+    if (n < 0.000001) return '$' + n.toExponential(2)
+    return '$' + n.toFixed(6)
   }
 
   return (
@@ -153,5 +151,4 @@ export default function TabLeaderboard() {
       )}
     </div>
   )
-}`)
-console.log('done!')
+}
