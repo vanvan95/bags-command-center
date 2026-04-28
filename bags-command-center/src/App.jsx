@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useWallet } from '@solana/wallet-adapter-react'
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
 import SolanaWalletProvider from './WalletProvider'
@@ -16,28 +16,46 @@ import TabWallet from './TabWallet'
 import TabLeaderboard from './TabLeaderboard'
 import '@solana/wallet-adapter-react-ui/styles.css'
 
-const TABS = [
+const MAIN_TABS = [
   { id: 'dashboard', icon: '📊', label: 'Dashboard' },
   { id: 'feed', icon: '🔥', label: 'Feed' },
   { id: 'swap', icon: '⚡', label: 'Swap' },
   { id: 'trade', icon: '🤖', label: 'Trade' },
   { id: 'analytics', icon: '📈', label: 'Analytics' },
-  { id: 'portfolio', icon: '🎒', label: 'Portfolio' },
   { id: 'launch', icon: '🚀', label: 'Launch' },
-  { id: 'status', icon: '🟢', label: 'Status' },
   { id: 'alerts', icon: '🚨', label: 'Alerts' },
-  { id: 'ai', icon: '🤖', label: 'AI' },
-  { id: 'wallet', icon: '🐋', label: 'Wallet' },
+  { id: 'ai', icon: '🧠', label: 'AI' },
   { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
+]
+
+const MORE_TABS = [
+  { id: 'portfolio', icon: '🎒', label: 'Portfolio' },
+  { id: 'wallet', icon: '🐋', label: 'Wallet' },
+  { id: 'status', icon: '🟢', label: 'Status' },
 ]
 
 function AppInner() {
   const [tab, setTab] = useState('dashboard')
+  const [showMore, setShowMore] = useState(false)
   const { connected, publicKey } = useWallet()
+  const moreRef = useRef(null)
+
+  useEffect(() => {
+    function handleClick(e) {
+      if (moreRef.current && !moreRef.current.contains(e.target)) {
+        setShowMore(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
+  }, [])
 
   const shortAddr = publicKey
     ? publicKey.toBase58().slice(0, 4) + '...' + publicKey.toBase58().slice(-4)
     : null
+
+  const allTabs = [...MAIN_TABS, ...MORE_TABS]
+  const activeInMore = MORE_TABS.some(t => t.id === tab)
 
   return (
     <div style={{ minHeight: '100vh', background: '#080c12', fontFamily: '"DM Sans", system-ui, sans-serif', color: '#fff' }}>
@@ -52,14 +70,30 @@ function AppInner() {
           </div>
         </div>
 
-        {/* Tabs - scrollable */}
+        {/* Main Tabs */}
         <div style={{ display: 'flex', overflowX: 'auto', flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {TABS.map(t => (
-            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 7px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
-              <span style={{ fontSize: 13 }}>{t.icon}</span>
+          {MAIN_TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <span style={{ fontSize: 12 }}>{t.icon}</span>
               {t.label}
             </button>
           ))}
+
+          {/* More dropdown */}
+          <div ref={moreRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <button onClick={() => setShowMore(!showMore)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: activeInMore ? 700 : 500, background: activeInMore ? 'rgba(249,115,22,0.15)' : 'transparent', color: activeInMore ? '#f97316' : '#475569', borderBottom: activeInMore ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap' }}>
+              More ▾
+            </button>
+            {showMore && (
+              <div style={{ position: 'absolute', top: '110%', left: 0, background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, zIndex: 200, minWidth: 160, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                {MORE_TABS.map(t => (
+                  <button key={t.id} onClick={() => { setTab(t.id); setShowMore(false) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 16px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.1)' : 'transparent', color: tab === t.id ? '#f97316' : 'rgba(255,255,255,0.7)', textAlign: 'left' }}>
+                    <span>{t.icon}</span>{t.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Right side */}
@@ -102,10 +136,3 @@ export default function App() {
     </SolanaWalletProvider>
   )
 }
-
-
-
-
-
-
-

@@ -1,139 +1,141 @@
 const fs = require('fs')
 
-fs.writeFileSync('src/TabLeaderboard.jsx', `import { useState, useEffect } from 'react'
-import { fetchBags } from './api'
+fs.writeFileSync('src/App.jsx', `import { useState, useRef, useEffect } from 'react'
+import { useWallet } from '@solana/wallet-adapter-react'
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui'
+import SolanaWalletProvider from './WalletProvider'
+import TabDashboard from './TabDashboard'
+import TabFeed from './TabFeed'
+import TabTrade from './TabTrade'
+import TabLaunch from './TabLaunch'
+import TabStatus from './TabStatus'
+import TabAnalytics from './TabAnalytics'
+import TabPortfolio from './TabPortfolio'
+import TabSwap from './TabSwap'
+import TabAI from './TabAI'
+import TabAIAnalysis from './TabAIAnalysis'
+import TabWallet from './TabWallet'
+import TabLeaderboard from './TabLeaderboard'
+import '@solana/wallet-adapter-react-ui/styles.css'
 
-export default function TabLeaderboard() {
-  const [tokens, setTokens] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [sort, setSort] = useState('name')
-  const [search, setSearch] = useState('')
-  const [copied, setCopied] = useState('')
+const MAIN_TABS = [
+  { id: 'dashboard', icon: '📊', label: 'Dashboard' },
+  { id: 'feed', icon: '🔥', label: 'Feed' },
+  { id: 'swap', icon: '⚡', label: 'Swap' },
+  { id: 'trade', icon: '🤖', label: 'Trade' },
+  { id: 'analytics', icon: '📈', label: 'Analytics' },
+  { id: 'launch', icon: '🚀', label: 'Launch' },
+  { id: 'alerts', icon: '🚨', label: 'Alerts' },
+  { id: 'ai', icon: '🧠', label: 'AI' },
+  { id: 'leaderboard', icon: '🏆', label: 'Leaderboard' },
+]
+
+const MORE_TABS = [
+  { id: 'portfolio', icon: '🎒', label: 'Portfolio' },
+  { id: 'wallet', icon: '🐋', label: 'Wallet' },
+  { id: 'status', icon: '🟢', label: 'Status' },
+]
+
+function AppInner() {
+  const [tab, setTab] = useState('dashboard')
+  const [showMore, setShowMore] = useState(false)
+  const { connected, publicKey } = useWallet()
+  const moreRef = useRef(null)
 
   useEffect(() => {
-    async function load() {
-      try {
-        const data = await fetchBags('/token-launch/feed')
-        const list = Array.isArray(data) ? data : (data?.response || data?.launches || data?.tokens || [])
-        setTokens(list)
-      } catch(e) {}
-      setLoading(false)
+    function handleClick(e) {
+      if (moreRef.current && !moreRef.current.contains(e.target)) {
+        setShowMore(false)
+      }
     }
-    load()
+    document.addEventListener('mousedown', handleClick)
+    return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  function copy(text) {
-    navigator.clipboard.writeText(text)
-    setCopied(text)
-    setTimeout(() => setCopied(''), 2000)
-  }
+  const shortAddr = publicKey
+    ? publicKey.toBase58().slice(0, 4) + '...' + publicKey.toBase58().slice(-4)
+    : null
 
-  const filtered = tokens.filter(t => {
-    if (!search) return true
-    const q = search.toLowerCase()
-    return (t.name||'').toLowerCase().includes(q) ||
-           (t.symbol||'').toLowerCase().includes(q) ||
-           (t.tokenMint||'').toLowerCase().includes(q)
-  }).slice(0, 50)
+  const allTabs = [...MAIN_TABS, ...MORE_TABS]
+  const activeInMore = MORE_TABS.some(t => t.id === tab)
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-      <div style={{ marginBottom: 20 }}>
-        <h2 style={{ fontSize: 22, fontWeight: 700, margin: '0 0 4px' }}>🏆 Token Leaderboard</h2>
-        <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, fontSize: 14 }}>Top 50 live Bags tokens — copy mint address, open on DexScreener or Solscan</p>
-      </div>
-
-      <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
-        <input
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by symbol, name, or mint..."
-          style={{ flex: 1, padding: '8px 16px', borderRadius: 99, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#fff', fontSize: 13 }}
-        />
-      </div>
-
-      {loading ? (
-        <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.4)' }}>Loading...</div>
-      ) : (
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.4)' }}>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>#</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>TOKEN</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>MINT ADDRESS</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>STATUS</th>
-                <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>LINKS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((t, i) => {
-                const mint = t.tokenMint || t.mint || ''
-                return (
-                  <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
-                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.03)'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <td style={{ padding: '10px 8px', color: 'rgba(255,255,255,0.4)' }}>{i+1}</td>
-                    <td style={{ padding: '10px 8px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <img src={t.image||'https://ui-avatars.com/api/?name='+t.symbol+'&background=f97316&color=fff&size=32'}
-                          alt="" style={{ width: 28, height: 28, borderRadius: '50%' }}
-                          onError={e => e.target.src='https://ui-avatars.com/api/?name=T&background=f97316&color=fff&size=32'} />
-                        <div>
-                          <div style={{ fontWeight: 700 }}>{t.symbol || '?'}</div>
-                          <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>{t.name}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px 8px' }}>
-                      {mint ? (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>
-                            {mint.slice(0,8)}...{mint.slice(-4)}
-                          </span>
-                          <button onClick={() => copy(mint)} style={{
-                            padding: '2px 8px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 10, fontWeight: 600,
-                            background: copied === mint ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.08)',
-                            color: copied === mint ? '#10b981' : 'rgba(255,255,255,0.6)'
-                          }}>
-                            {copied === mint ? '✓ Copied' : 'Copy'}
-                          </button>
-                        </div>
-                      ) : <span style={{ color: 'rgba(255,255,255,0.2)' }}>-</span>}
-                    </td>
-                    <td style={{ padding: '10px 8px' }}>
-                      <span style={{
-                        padding: '2px 10px', borderRadius: 99, fontSize: 11, fontWeight: 700,
-                        background: t.status === 'ACTIVE' ? 'rgba(16,185,129,0.15)' : 'rgba(249,115,22,0.15)',
-                        color: t.status === 'ACTIVE' ? '#10b981' : '#f97316'
-                      }}>{t.status || 'PRE_GRAD'}</span>
-                    </td>
-                    <td style={{ padding: '10px 8px' }}>
-                      {mint && (
-                        <div style={{ display: 'flex', gap: 8 }}>
-                          <a href={"https://dexscreener.com/solana/"+mint} target="_blank" rel="noreferrer" style={{
-                            padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                            background: 'rgba(16,185,129,0.15)', color: '#10b981', textDecoration: 'none'
-                          }}>DEX↗</a>
-                          <a href={"https://solscan.io/token/"+mint} target="_blank" rel="noreferrer" style={{
-                            padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                            background: 'rgba(249,115,22,0.15)', color: '#f97316', textDecoration: 'none'
-                          }}>SOL↗</a>
-                          <a href={"https://bags.fm/token/"+mint} target="_blank" rel="noreferrer" style={{
-                            padding: '3px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
-                            background: 'rgba(139,92,246,0.15)', color: '#a78bfa', textDecoration: 'none'
-                          }}>BAGS↗</a>
-                        </div>
-                      )}
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
+    <div style={{ minHeight: '100vh', background: '#080c12', fontFamily: '"DM Sans", system-ui, sans-serif', color: '#fff' }}>
+      <div style={{ background: '#0d1117', borderBottom: '1px solid rgba(255,255,255,0.06)', padding: '0 24px', display: 'flex', alignItems: 'center', gap: 12, height: 56, position: 'sticky', top: 0, zIndex: 100 }}>
+        
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginRight: 8, flexShrink: 0 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>🎒</div>
+          <div>
+            <div style={{ fontWeight: 800, fontSize: 15, lineHeight: 1 }}>Bags</div>
+            <div style={{ fontSize: 9, color: '#f97316', fontWeight: 700, letterSpacing: 1, whiteSpace: 'nowrap' }}>COMMAND CENTER</div>
+          </div>
         </div>
-      )}
+
+        {/* Main Tabs */}
+        <div style={{ display: 'flex', overflowX: 'auto', flex: 1, scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {MAIN_TABS.map(t => (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.15)' : 'transparent', color: tab === t.id ? '#f97316' : '#475569', borderBottom: tab === t.id ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap', flexShrink: 0 }}>
+              <span style={{ fontSize: 12 }}>{t.icon}</span>
+              {t.label}
+            </button>
+          ))}
+
+          {/* More dropdown */}
+          <div ref={moreRef} style={{ position: 'relative', flexShrink: 0 }}>
+            <button onClick={() => setShowMore(!showMore)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: activeInMore ? 700 : 500, background: activeInMore ? 'rgba(249,115,22,0.15)' : 'transparent', color: activeInMore ? '#f97316' : '#475569', borderBottom: activeInMore ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap' }}>
+              More ▾
+            </button>
+            {showMore && (
+              <div style={{ position: 'absolute', top: '110%', left: 0, background: '#1a1f2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, zIndex: 200, minWidth: 160, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                {MORE_TABS.map(t => (
+                  <button key={t.id} onClick={() => { setTab(t.id); setShowMore(false) }} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '10px 16px', border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: tab === t.id ? 700 : 500, background: tab === t.id ? 'rgba(249,115,22,0.1)' : 'transparent', color: tab === t.id ? '#f97316' : 'rgba(255,255,255,0.7)', textAlign: 'left' }}>
+                    <span>{t.icon}</span>{t.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right side */}
+        <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981' }} />
+            <span style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>Live</span>
+          </div>
+          {connected && shortAddr && (
+            <div style={{ fontSize: 12, color: '#10b981', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', padding: '4px 10px', borderRadius: 99, fontWeight: 600, whiteSpace: 'nowrap' }}>
+              ✅ {shortAddr}
+            </div>
+          )}
+          <WalletMultiButton style={{ whiteSpace: 'nowrap', borderRadius: 10, fontSize: 13, fontWeight: 700, height: 36, padding: '0 16px' }} />
+        </div>
+      </div>
+
+      <div style={{ padding: '24px' }}>
+        {tab === 'dashboard' && <TabDashboard />}
+        {tab === 'feed' && <TabFeed />}
+        {tab === 'swap' && <TabSwap />}
+        {tab === 'trade' && <TabTrade />}
+        {tab === 'analytics' && <TabAnalytics />}
+        {tab === 'portfolio' && <TabPortfolio />}
+        {tab === 'launch' && <TabLaunch />}
+        {tab === 'status' && <TabStatus />}
+        {tab === 'alerts' && <TabAI />}
+        {tab === 'ai' && <TabAIAnalysis />}
+        {tab === 'wallet' && <TabWallet />}
+        {tab === 'leaderboard' && <TabLeaderboard />}
+      </div>
     </div>
+  )
+}
+
+export default function App() {
+  return (
+    <SolanaWalletProvider>
+      <AppInner />
+    </SolanaWalletProvider>
   )
 }`)
 console.log('done!')
