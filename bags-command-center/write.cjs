@@ -8,7 +8,7 @@ fs.writeFileSync('api/claude.js', `export default async function handler(req, re
 
   try {
     const body = req.body || {}
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -20,14 +20,13 @@ fs.writeFileSync('api/claude.js', `export default async function handler(req, re
         max_tokens: 1000
       })
     })
-    const text = await response.text()
-    try {
-      const data = JSON.parse(text)
-      const result = data.choices?.[0]?.message?.content || 'No response'
-      res.status(200).json({ content: [{ text: result }] })
-    } catch(e) {
-      res.status(500).json({ error: text.slice(0, 300) })
+    const groqData = await groqRes.json()
+    console.log('Groq raw:', JSON.stringify(groqData).slice(0, 300))
+    const text = groqData?.choices?.[0]?.message?.content
+    if (!text) {
+      return res.status(500).json({ error: 'Groq returned: ' + JSON.stringify(groqData).slice(0,200) })
     }
+    res.status(200).json({ content: [{ text }] })
   } catch(e) {
     res.status(500).json({ error: e.message })
   }
