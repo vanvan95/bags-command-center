@@ -80,7 +80,7 @@ function AppInner() {
           ))}
 
           {/* More dropdown */}
-          <div ref={moreRef} style={{ position: 'relative', flexShrink: 0 }}>
+          <div ref={moreRef} style={{ position: 'relative', flexShrink: 0, zIndex: 2000 }}>
             <button onClick={() => setShowMore(!showMore)} style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '6px 10px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 11, fontWeight: activeInMore ? 700 : 500, background: activeInMore ? 'rgba(249,115,22,0.15)' : 'transparent', color: activeInMore ? '#f97316' : '#475569', borderBottom: activeInMore ? '2px solid #f97316' : '2px solid transparent', whiteSpace: 'nowrap' }}>
               More ▾
             </button>
@@ -136,3 +136,4 @@ export default function App() {
     </SolanaWalletProvider>
   )
 }
+
