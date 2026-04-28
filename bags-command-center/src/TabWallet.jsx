@@ -3,20 +3,38 @@ import { useState } from 'react'
 export default function TabWallet() {
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
-  const [data, setData] = useState(null)
+  const [tokens, setTokens] = useState([])
   const [error, setError] = useState('')
 
   async function lookup() {
     if (!address.trim()) return
     setLoading(true)
     setError('')
-    setData(null)
+    setTokens([])
     try {
-      const r = await fetch('https://public-api.solscan.io/account/tokens?account=' + address.trim())
-      const tokens = await r.json()
-      setData(tokens)
+      const r = await fetch('https://api.mainnet-beta.solana.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jsonrpc: '2.0', id: 1,
+          method: 'getTokenAccountsByOwner',
+          params: [
+            address.trim(),
+            { programId: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' },
+            { encoding: 'jsonParsed' }
+          ]
+        })
+      })
+      const data = await r.json()
+      const accounts = data?.result?.value || []
+      const list = accounts
+        .map(a => a.account?.data?.parsed?.info)
+        .filter(t => t && t.tokenAmount?.uiAmount > 0)
+        .sort((a, b) => b.tokenAmount.uiAmount - a.tokenAmount.uiAmount)
+      setTokens(list)
+      if (list.length === 0) setError('No tokens found or empty wallet.')
     } catch(e) {
-      setError('Failed to fetch wallet data.')
+      setError('Failed to fetch: ' + e.message)
     }
     setLoading(false)
   }
@@ -46,29 +64,27 @@ export default function TabWallet() {
 
       {error && <div style={{ color: '#ef4444', padding: 16, background: 'rgba(239,68,68,0.1)', borderRadius: 12, marginBottom: 16 }}>{error}</div>}
 
-      {data && (
+      {tokens.length > 0 && (
         <div>
-          <div style={{ marginBottom: 16, color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
-            Found {data.length} tokens in wallet
-          </div>
+          <div style={{ marginBottom: 12, color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>Found {tokens.length} tokens</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {data.slice(0, 20).map((t, i) => (
+            {tokens.slice(0, 20).map((t, i) => (
               <div key={i} style={{
                 background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
                 borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', justifyContent: 'space-between'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13 }}>
-                    {(t.tokenSymbol || '?').slice(0,2)}
+                  <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #f97316, #ef4444)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 11, color: '#fff' }}>
+                    {t.mint?.slice(0,3)}
                   </div>
                   <div>
-                    <div style={{ fontWeight: 600 }}>{t.tokenName || 'Unknown'}</div>
-                    <div style={{ fontSize: 12, color: '#f97316' }}>${t.tokenSymbol || '?'}</div>
+                    <div style={{ fontWeight: 600, fontSize: 13 }}>{t.mint?.slice(0,8)}...{t.mint?.slice(-4)}</div>
+                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>SPL Token</div>
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontWeight: 700 }}>{(t.tokenAmount?.uiAmount || 0).toLocaleString()}</div>
-                  <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>tokens</div>
+                  <div style={{ fontWeight: 700, color: '#10b981' }}>{t.tokenAmount?.uiAmountString}</div>
+                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>balance</div>
                 </div>
               </div>
             ))}
@@ -76,11 +92,10 @@ export default function TabWallet() {
         </div>
       )}
 
-      {!data && !loading && !error && (
+      {!tokens.length && !loading && !error && (
         <div style={{ textAlign: 'center', padding: 60, color: 'rgba(255,255,255,0.3)' }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>🐋</div>
           <div>Enter a wallet address to track holdings</div>
-          <div style={{ fontSize: 12, marginTop: 8 }}>Works with any Solana wallet</div>
         </div>
       )}
     </div>
