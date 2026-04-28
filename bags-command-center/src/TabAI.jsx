@@ -44,7 +44,7 @@ Cung cấp:
           messages: [{ role: 'user', content: prompt }]
         })
       })
-      const data = await res.json()
+      const raw = await res.text(); console.log('RAW:', raw.slice(0,200)); const data = JSON.parse(raw)
       const text = data.content?.[0]?.text || data.content?.map(c => c.text || '').join('') || 'Không thể phân tích.'
       setAnalysis(text || 'Không thể phân tích.')
     } catch(e) {
@@ -95,6 +95,7 @@ Cung cấp:
     </div>
   )
 }
+
 
 
 
