@@ -3,24 +3,22 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
   if (req.method === 'OPTIONS') return res.status(200).end()
-
   try {
     const body = req.body || {}
-    const r = await fetch('https://api.anthropic.com/v1/messages', {
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01'
+        'Authorization': 'Bearer ' + process.env.GROQ_API_KEY
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1000,
-        messages: body.messages || [{ role: 'user', content: 'Hello' }]
+        model: 'llama-3.3-70b-versatile',
+        messages: body.messages || [{ role: 'user', content: 'Hello' }],
+        max_tokens: 1000
       })
     })
     const data = await r.json()
-    const text = data.content?.[0]?.text
+    const text = data.choices?.[0]?.message?.content
     if (!text) return res.status(500).json({ error: JSON.stringify(data).slice(0,200) })
     res.status(200).json({ content: [{ text }] })
   } catch(e) {
