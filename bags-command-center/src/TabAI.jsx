@@ -45,7 +45,7 @@ Cung cấp:
         })
       })
       const data = await res.json()
-      const text = data.content?.map(c => c.text || '').join('') || 'Không thể phân tích.'
+      const text = data.content?.[0]?.text || data.content?.map(c => c.text || '').join('') || 'Không thể phân tích.'
       setAnalysis(text)
     } catch(e) {
       setAnalysis('Lỗi: ' + e.message)
@@ -95,4 +95,5 @@ Cung cấp:
     </div>
   )
 }
+
 
